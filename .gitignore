@@ -46,14 +46,13 @@ app.*.map.json
 
 
 .metadata
-README.md
 analysis_options.yaml
 android/
 ios/
-lib/
 linux/
 macos/
 pubspec.lock
 pubspec.yaml
 test/
 windows/
+.gitignore
