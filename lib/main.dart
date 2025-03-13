@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quequitos/views/queques.dart';
+import 'package:quequitos/views/prices.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,8 +32,8 @@ class _MyHomePageState extends State<MyHomePage> {
   );
   static const List<Widget> _widgetOptions = <Widget>[
     Queque(),
-    Text('Index 1: Business', style: optionStyle),
-    Text('Index 2: School', style: optionStyle),
+    Prices(),
+    Text('Se vienen cositas😎', style: optionStyle),
   ];
 
   void _onItemTapped(int index) {
