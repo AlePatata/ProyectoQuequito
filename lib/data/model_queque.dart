@@ -1,14 +1,14 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:quequitos/data/db.dart';
 
 class ModelQueque {
+  int? id;
   DateTime done;
   int sold;
-  int pieces = 21;
   String flavor;
   bool charged;
-  ModelQueque({required this.done, required this.sold, required this.flavor, required this.charged});
+  ModelQueque({this.id, required this.done, required this.sold, required this.flavor, required this.charged});
 
   List<String> flavors = ['Limon', 'Vainilla', 'Marmolado'];
   Map<String, double> recipe = {
@@ -27,16 +27,39 @@ class ModelQueque {
     'Polvos': 650,
     'Otros': 0
   };
+  int pieces = 21;
   double _cost = 0;
   double _gain = 0;
   double mamiPrice = 15000;
 
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'done': done.toIso8601String(),
+      'sold': sold,
+      'flavor': flavor,
+      'charged': charged ? 1 : 0
+    };
+  }
+
+  /*
   factory ModelQueque.fromJson(Map<String, dynamic> json) {
     return ModelQueque(
       done: DateTime.parse(json['done']),
       sold: json['sold'],
       flavor: json['flavor'],
       charged: json['charged']
+    );
+  }
+  */
+
+  factory ModelQueque.fromMap(Map<String, dynamic> map) {
+    return ModelQueque(
+      id: map['id'],
+      done: DateTime.parse(map['done']),
+      sold: map['sold'],
+      flavor: map['flavor'],
+      charged: map['charged'] == 1,
     );
   }
 
@@ -68,16 +91,26 @@ class ModelQueque {
     done = d;
   }
 
-  void setSold(int s) {
-    sold = s;
+  void setSold(int increment) async {
+    sold += increment;
+    sold = max(0, sold);
+    sold = min(pieces, sold);
+    updateDB();
   }
 
-  void setFlavor(String f) {
+  void setFlavor(String f) async {
     flavor = f;
+    updateDB();
   }
 
   void setCharged(bool b) {
     charged = b;
+    updateDB();
+  }
+
+  void setID(int i) {
+    id = i;
+    updateDB();
   }
 
 
@@ -85,6 +118,13 @@ class ModelQueque {
   /// Other methods ///
   DateTime? selectedDate;
 
+  void updateDB() async {
+    if (id != null) {
+      await DBHelper.instance.updateQueque(this);
+    }
+  }
+
+  /// Widgets ///
   Widget pickDate(BuildContext context) {
     DateTime? selectedDate;
     Future<void> selectDateFunction() async {
@@ -120,7 +160,8 @@ class ModelQueque {
   }
 
   Widget pickFlavor(BuildContext context) {
-    return DropdownButton(
+    return DropdownButton<String>(
+      value: flavor,
       items: flavors.map((String flavor) {
         return DropdownMenuItem(
           value: flavor,
@@ -139,9 +180,15 @@ class ModelQueque {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        IconButton(onPressed: (){sold = max(0, sold-1);}, icon: Icon(Icons.remove), iconSize: 10.0),
+        IconButton(
+          onPressed: () => setSold(-1),
+          icon: Icon(Icons.remove),
+          iconSize: 10.0),
         Text('$sold/$pieces'),
-        IconButton(onPressed: (){sold++;}, icon: Icon(Icons.add), iconSize: 10.0),
+        IconButton(
+          onPressed: () => setSold(1),
+          icon: Icon(Icons.add),
+          iconSize: 10.0),
       ],
     );
   }

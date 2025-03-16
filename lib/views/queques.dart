@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quequitos/data/model_queque.dart';
+import 'package:quequitos/data/db.dart';
 
 class Queque extends StatefulWidget{
   const Queque({super.key});
@@ -11,9 +12,27 @@ class Queque extends StatefulWidget{
 class _QuequeState extends State<Queque> {
   List<ModelQueque> queques = [];
 
-  void _addQueque() {
+  @override
+  void initState() {
+    super.initState();
+    _loadQueques();
+  }
+
+  Future<void> _loadQueques() async {
+    final dbQueques = await DBHelper.instance.getAllQueques();
     setState(() {
-      queques.add(ModelQueque.fromNothing());
+      queques = dbQueques;
+    });
+  }
+
+  Future<void> _addQueque() async {
+    final newQueque = ModelQueque.fromNothing();
+    final id = await DBHelper.instance.insertQueque(newQueque);
+
+
+    setState(() {
+      newQueque.setID(id);
+      queques.add(newQueque);
     });
   }
 
@@ -47,14 +66,17 @@ class _QuequeState extends State<Queque> {
                 final queque = queques[index];
                 totalCost += queque.cost.toInt();
                 totalGain += queque.gain.toInt();
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(flex: 1, child: queque.pickDate(context)),
-                    Expanded(flex: 3, child: queque.pickSold(context)),
-                    Expanded(flex: 2, child: queque.pickFlavor(context)),
-                    Flexible(child: queque.pickCharged(context)),
-                  ],
+                return SizedBox(
+                  height: 50, // Altura de la fila
+                  child: ListView(
+                      scrollDirection: Axis.horizontal,
+                    children: [
+                      Expanded(flex: 1, child: queque.pickDate(context)),
+                      Expanded(flex: 3, child: queque.pickSold(context)),
+                      Expanded(flex: 2, child: queque.pickFlavor(context)),
+                      Flexible(child: queque.pickCharged(context)),
+                    ],
+                  )
                 );
               },
               separatorBuilder: (BuildContext context, int index) => const Divider(),)
@@ -77,7 +99,7 @@ class _QuequeState extends State<Queque> {
       child: Icon(Icons.add),
       ),
     );
-
-
   }
 }
+
+//
